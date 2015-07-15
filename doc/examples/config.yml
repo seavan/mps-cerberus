@@ -1,3 +1,13 @@
 celery:
   CELERY_RESULT_BACKEND: redis://localhost
   BROKER_URL: redis://localhost/0
+
+service:
+  youtube:
+    email: audioclick1@gmail.com
+    password: ********
+    source: audioclick
+
+storage:
+  type: webdav
+  url: http://127.0.0.1

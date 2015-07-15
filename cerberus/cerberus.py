@@ -51,14 +51,19 @@ class Cerberus(object):
             r = json_response(status=400)
             return r
 
-        if message['type'] == "VALIDATE":
-            validate.delay(message['params'])
-        elif message['type'] == "TRANSCODE":
-            transcode.delay(message['params'])
+        if message['type'] == "TRANSCODE":
+            transcode.delay(message['params'],
+                storage_config=self.config['storage'])
+
         elif message['type'] == "UPLOAD_TO":
-            upload_to.delay(message['params'])
+            upload_to.delay(message['params'],
+                storage_config=self.config['storage'],
+                service_config=self.config['service'])
+
         elif message['type'] == "DELETE_FROM":
-            delete_from.delay(message['params'])
+            delete_from.delay(message['params'],
+                service_config=self.config['service'])
+
         else:
             r = json_response(status=400)
             return r
