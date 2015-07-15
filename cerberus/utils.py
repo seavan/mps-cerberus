@@ -2,7 +2,10 @@
 
 import types
 
-def merge(x,y):
+def merge(x, y):
+    if y is None:
+        y = {}
+
     merged = dict(x,**y)
 
     xkeys = x.keys()

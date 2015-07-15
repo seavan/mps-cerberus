@@ -47,7 +47,8 @@ def run_script():
         sys.exit(1)
 
     config = merge(default_config, config)
-    app = Celery('cerberus.celery', broker='redis://localhost/0', backend='redis://localhost')
+    app = Celery('cerberus.celery')
+    app.conf.update(**config['celery'])
 
     try:
         o = Cerberus(config, app)
