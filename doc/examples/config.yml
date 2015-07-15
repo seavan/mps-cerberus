@@ -5,7 +5,7 @@ celery:
 service:
   youtube:
     email: audioclick1@gmail.com
-    password: ********
+    password: "********"
     source: audioclick
 
 storage:

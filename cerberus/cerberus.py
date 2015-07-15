@@ -51,8 +51,8 @@ class Cerberus(object):
             r = json_response(status=400)
             return r
 
-        if message['type'] == "TRANSCODE":
-            transcode.delay(message['params'],
+        if message['type'] == "TRANSCODE_AV":
+            transcode_av.delay(message['params'],
                 storage_config=self.config['storage'])
 
         elif message['type'] == "UPLOAD_TO":
