@@ -1,0 +1,3 @@
+celery:
+  broker: redis://localhost/0
+  backend: redis://localhost

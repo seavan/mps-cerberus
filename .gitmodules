@@ -1,0 +1,3 @@
+[submodule "cerberus/schemas"]
+	path = cerberus/schemas
+	url = https://github.com/seavan/mps-schemas
