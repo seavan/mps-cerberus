@@ -7,7 +7,9 @@ celery==3.1.18
 distribute==0.6.24
 eventlet==0.17.4
 functools32==3.2.3-2
+gdata==2.0.18
 greenlet==0.4.7
 jsonschema==2.5.1
 kombu==3.0.26
 pytz==2015.4
+redis==2.10.3
