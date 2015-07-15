@@ -57,8 +57,8 @@ class Cerberus(object):
 
         elif message['type'] == "UPLOAD_TO":
             upload_to.delay(message['params'],
-                storage_config=self.config['storage'],
-                service_config=self.config['service'])
+                service_config=self.config['service'],
+                storage_config=self.config['storage'])
 
         elif message['type'] == "DELETE_FROM":
             delete_from.delay(message['params'],
