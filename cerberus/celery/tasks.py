@@ -133,6 +133,18 @@ def transcode_av(message, storage_config, redis_config):
     success()
 
 @shared_task
+def parse(params, storage_config, redis_config):
+    """
+    Задача Celery. Выполняет парсинг ID3 тегов в mp3 файле и
+    публикует полученные данные.
+
+    :param params:
+    :param storage_config:
+    :param redis_config:
+    """
+    pass
+
+@shared_task
 def upload_to(params, service_config, storage_config, redis_config):
     """
     Задача Celery. Выполняет публикацию материала на указанный
