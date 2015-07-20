@@ -1,5 +1,10 @@
 # encoding: utf-8
 
+import json
+import functools
+
+import redis
+
 from celery import shared_task
 
 from os.path import splitext
@@ -11,11 +16,43 @@ from cerberus.services import *
 
 from .logger import *
 
-def publish_result(message):
-    print(message)
+def emit_transcode_progress(db, queue, message, progress):
+    event = {
+        'id': message['id'],
+        'callback_uri': message['callback_uri'],
+        'type': 'TRANSCODE_PROGRESS',
+        'params': {
+          'progress': progress
+        }
+    }
+
+    info("{0}: {1}".format(queue, event))
+    db.rpush(queue, json.dumps(event))
+
+def emit_success(db, queue, message):
+    event = {
+        'id': message['id'],
+        'callback_uri': message['callback_uri'],
+        'type': 'SUCCESS',
+        'params': {}
+    }
+
+    info("{0}: {1}".format(queue, event))
+    db.rpush(queue, json.dumps(event))
+
+def emit_fail(db, queue, message):
+    event = {
+        'id': message['id'],
+        'callback_uri': message['callback_uri'],
+        'type': 'FAIL',
+        'params': {}
+    }
+
+    info("{0}: {1}".format(queue, event))
+    db.rpush(queue, json.dumps(event))
 
 @shared_task
-def transcode_av(params, storage_config):
+def transcode_av(message, storage_config, redis_config):
     """
     Задача Celery. Выполняет транскодирование audio файла в mp3 и mp4 с
     указанными настройками. Видео файлы используются для публикации на
@@ -23,10 +60,26 @@ def transcode_av(params, storage_config):
 
     :param params:
     :param storage_config:
+    :param redis_config:
     :return: None
     """
 
-    # TODO: Вынести в основной конф. файл
+    redis_db = redis.StrictRedis(host=redis_config['host'],
+                    port=redis_config['port'],
+                    db=redis_config['db'])
+
+    progress = functools.partial(emit_transcode_progress, redis_db,
+                        redis_config['queue_name'], message)
+
+    success = functools.partial(emit_success, redis_db,
+                        redis_config['queue_name'], message)
+
+    fail = functools.partial(emit_fail, redis_db,
+                        redis_config['queue_name'], message)
+
+    params = message['params']
+
+    # XXX: Вынести в основной конф. файл
     FFMPEG_COMMAND_TEMPLATE = ('ffmpeg -y -loop 1 '
         '-i {input_picture} -i {input_audio} -shortest '
         '-vcodec libx264 -acodec aac -strict experimental {output_video}')
@@ -60,17 +113,12 @@ def transcode_av(params, storage_config):
         publish_result("fail: could not download files from storage: {0}".format(e))
         return
 
-    try:
-        cmd = FFMPEG_COMMAND_TEMPLATE.format(
+    cmd = FFMPEG_COMMAND_TEMPLATE.format(
                                 input_audio=input_audio_temp.name,
                                 input_picture=input_picture_temp.name,
                                 output_video=output_video_temp.name)
-        info("run command `{0}`".format(cmd))
-        run(cmd)
-    except Exception as e:
-        error(e)
-        publish_result("fail: errors during transcoding")
-        return
+    info("run command `{0}`".format(cmd))
+    run_ffmpeg(cmd, progress_handler=progress)
 
     try:
         storage.upload(output_video_temp.name, params['output_video'])
@@ -78,8 +126,7 @@ def transcode_av(params, storage_config):
         publish_result("fail: could not upload files to storage")
         return
 
-    publish_result("success: everything fine")
-    return
+    success()
 
 @shared_task
 def upload_to(params, service_config, storage_config):

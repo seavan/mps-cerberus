@@ -8,6 +8,12 @@ service:
     password: "********"
     source: audioclick
 
-storage:
-  type: webdav
-  url: http://127.0.0.1
+transcode:
+  storage:
+    type: webdav
+    url: http://127.0.0.1
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    db: 1
+    queue_name: transcode_results

@@ -52,8 +52,9 @@ class Cerberus(object):
             return r
 
         if message['type'] == "TRANSCODE_AV":
-            transcode_av.delay(message['params'],
-                storage_config=self.config['storage'])
+            transcode_av.delay(message,
+                storage_config=self.config['transcode']['storage'],
+                redis_config=self.config['transcode']['redis'])
 
         elif message['type'] == "UPLOAD_TO":
             upload_to.delay(message['params'],
