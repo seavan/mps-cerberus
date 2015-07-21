@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+import os
 import json
 import functools
 
@@ -49,6 +50,9 @@ def parse_metadata(message, config):
         info("input_audio downloaded to `{0}`".format(input_audio_temp.name))
 
         metadata = parse_metadata(input_audio_temp)
+
+        for x in [input_audio_temp]:
+            os.unlink(x.name)
     except Exception as e:
         fail()
         raise e
@@ -102,6 +106,10 @@ def transcode_a(message, config):
         run_ffmpeg(cmd, progress_handler=progress)
 
         storage.upload(output_audio_temp.name, params['output_video'])
+
+        if not config['keep_data']:
+            for x in [input_audio_temp, output_audio_temp]:
+                os.unlink(x.name)
     except Exception as e:
         fail()
         raise e
@@ -162,6 +170,10 @@ def transcode_av(message, config):
         run_ffmpeg(cmd, progress_handler=progress)
 
         storage.upload(output_video_temp.name, params['output_video'])
+
+        if not config['keep_data']:
+            for x in [input_audio_temp, input_picture_temp, output_video_temp]:
+                os.unlink(x.name)
     except Exception as e:
         fail()
         raise e

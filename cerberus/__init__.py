@@ -31,6 +31,7 @@ default_config = {
 
   'tasks': {
     'transcode_av': {
+      'keep_data': False,
       'ffmpeg_command_template': '/usr/bin/ffmpeg -y -loop 1 -i {input_picture} -i {input_audio} -shortest -vcodec libx264 -acodec aac -strict experimental {output_video}',
       'storage': {
         'type': 'webdav',
@@ -44,6 +45,7 @@ default_config = {
       }
     },
     'transcode_a': {
+      'keep_data': False,
       'ffmpeg_command_template': '/usr/bin/ffmpeg -i {input_audio} -f mp2 {output_audio}',
       'storage': {
         'type': 'webdav',
@@ -83,6 +85,7 @@ default_config = {
 
     },
     'parse_metadata': {
+      'keep_data': False,
       'storage': {
         'type': 'webdav',
         'url': 'http://127.0.0.1:80'
