@@ -2,10 +2,9 @@
 
 from .webdav import WebDavStorage
 
-__all__ = ['WebDavStorage', 'create_storage']
+from cerberus.exceptions import UnknownStorage
 
-class UnknownStorage(Exception):
-    pass
+__all__ = ['WebDavStorage', 'create_storage']
 
 def create_storage(config):
 
@@ -13,3 +12,5 @@ def create_storage(config):
         storage = WebDavStorage(url=config['url'])
     else:
         raise UnknownStorage(config['type'])
+
+    return storage

@@ -52,30 +52,21 @@ class Cerberus(object):
             return r
 
         if message['type'] == "TRANSCODE_AV":
-            transcode_av.delay(message,
-                storage_config=self.config['tasks']['transcode_av']['storage'],
-                redis_config=self.config['tasks']['transcode_av']['redis'])
+            transcode_av.delay(message, self.config['tasks']['transcode_av'])
 
         elif message['type'] == "TRANSCODE_A":
-            transcode_a.delay(message,
-                storage_config=self.config['tasks']['transcode_a']['storage'],
-                redis_config=self.config['tasks']['transcode_a']['redis'])
+            transcode_a.delay(message, self.config['tasks']['transcode_a'])
 
         elif message['type'] == "PARSE_METADATA":
-            parse_metadata.delay(message,
-                storage_config=self.config['tasks']['parse']['storage'],
-                redis_config=self.config['tasks']['parse']['redis'])
+            parse_metadata.delay(message, self.config['tasks']['parse_metadata'])
 
         elif message['type'] == "UPLOAD":
-            upload.delay(message['params'],
-                service_config=self.config['services'],
-                storage_config=self.config['tasks']['upload']['storage'],
-                redis_config=self.config['tasks']['upload']['redis'])
+            upload.delay(message['params'], self.config['tasks']['upload'],
+                self.config['services'])
 
         elif message['type'] == "DELETE":
-            delete.delay(message['params'],
-                service_config=self.config['services'],
-                redis_config=self.config['tasks']['delete']['redis'])
+            delete.delay(message['params'], self.config['tasks']['delete'],
+                self.config['services'])
 
         else:
             r = json_response(status=400)
