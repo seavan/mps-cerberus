@@ -43,3 +43,6 @@ class YouTube(object):
         video_file_location.write(content)
 
         self.y.InsertVideoEntry(video_entry, video_file_location.name)
+
+    def delete(self):
+        pass

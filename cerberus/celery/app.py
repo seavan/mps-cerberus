@@ -9,7 +9,7 @@ import yaml
 
 from celery import Celery
 
-from ..utils import merge
+from cerberus.utils import merge
 
 try:
     config_path = os.environ['CERBERUS_WORKER_CONFIG_PATH']
