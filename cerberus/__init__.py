@@ -25,6 +25,81 @@ default_config = {
   },
 
   'celery': {
+    'CELERY_RESULT_BACKEND': 'redis://localhost',
+    'BROKER_URL': 'redis://localhost/0'
+  },
+
+  'tasks': {
+    'transcode_av': {
+      'storage': {
+        'type': 'webdav',
+        'url': 'http://127.0.0.1:80'
+      },
+      'redis': {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db': 1,
+        'queue_name': 'transcode_av:result'
+      }
+    },
+    'transcode_a': {
+      'storage': {
+        'type': 'webdav',
+        'url': 'http://127.0.0.1:80'
+      },
+      'redis': {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db': 1,
+        'queue_name': 'transcode_a:result'
+      }
+    },
+    'upload': {
+      'storage': {
+        'type': 'webdav',
+        'url': 'http://127.0.0.1:80'
+      },
+      'redis': {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db': 1,
+        'queue_name': 'upload:result'
+      }
+
+    },
+    'delete': {
+      'storage': {
+        'type': 'webdav',
+        'url': 'http://127.0.0.1:80'
+      },
+      'redis': {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db': 1,
+        'queue_name': 'delete:result'
+      }
+
+    },
+    'parse_metadata': {
+      'storage': {
+        'type': 'webdav',
+        'url': 'http://127.0.0.1:80'
+      },
+      'redis': {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db': 1,
+        'queue_name': 'parse_metadata:result'
+      }
+    }
+  },
+
+  'services': {
+    'youtube': {
+      'login': None,
+      'password': None,
+      'source': None
+    }
   }
 }
 
