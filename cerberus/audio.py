@@ -1,6 +1,22 @@
 # encoding: utf-8
 
-import mutaget
+import mutagen
+
+def get_vorbis_comment(obj, key):
+    try:
+        value = obj['key'][0]
+    except (KeyError, ValueError) as e:
+        return None
+
+    return value
+
+def get_id3_tag(obj, key):
+    try:
+        value = obj.tags['key'].text[0]
+    except Exception as e:
+        return None
+
+    return value
 
 def parse_metadata(filename):
     result = {
@@ -10,8 +26,15 @@ def parse_metadata(filename):
     }
 
     f = mutagen.File(filename)
-    result['artist'] = f['TPE1']
-    result['title' = f['TIT2']
-    result['album'] = f['TALB']
+
+    if isinstance(f, mutagen.mp3.MP3):
+        result['artist'] = get_id3_tag(f, 'TPE1')
+        result['title'] = get_id3_tag(f, 'TIT2')
+        result['album'] = get_id3_tag(f, 'TALB')
+
+    elif isinstance(f, mutagen.flac.FLAC):
+        result['artist'] = get_vorbis_comment(f, 'artist')
+        result['title'] = get_vorbis_comment(f, 'title')
+        result['album'] = get_vorbis_comment(f, 'album')
 
     return result
