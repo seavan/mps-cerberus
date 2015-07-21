@@ -3,59 +3,52 @@
 import json
 import functools
 
-import redis
-
 from celery import shared_task
 
 from os.path import splitext
 from tempfile import NamedTemporaryFile as TempFile
 
+from cerberus.audio import *
 from cerberus.system import *
 from cerberus.storage import *
 from cerberus.services import *
 
+from .emits import *
 from .logger import *
 
 class CerberusTaskFail(Exception):
     pass
 
-def emit_transcode_progress(message, progress):
-    event = {
-        'id': message['id'],
-        'type': 'TRANSCODE_PROGRESS',
-        'params': {
-          'progress': progress
-        }
-    }
+@shared_task
+def parse_metadata(message, storage_config, redis_config):
 
-    # XXX: Убрать хардкод timeout
-    info("{0}: {1}".format(event))
+    params = message['params']
+
     try:
-        requests.post(message['callback_uri'], data=json.dumps(event), timeout=2)
+        storage = create_storage(storage_config)
     except Exception as e:
-        warn("could not send progress event: {0}".format(e))
+        fail()
+        raise CerberusTaskFail("unknown storage type `{0}`".format(
+            storage_config['type']))
 
-def emit_success(db, queue, message):
-    event = {
-        'id': message['id'],
-        'callback_uri': message['callback_uri'],
-        'type': 'SUCCESS',
-        'params': {}
-    }
+    input_audio_temp = TempFile(delete=False,
+                            suffix=splitext(params['input_audio'])[1])
 
-    info("{0}: {1}".format(queue, event))
-    db.rpush(queue, json.dumps(event))
+    try:
+        storage.download_to(params['input_audio'], input_audio_temp.name)
+        info("input_audio downloaded to `{0}`".format(input_audio_temp.name))
+    except Exception as e:
+        fail()
+        raise CerberusTaskFail("could not download files from storage: {0}".format(e))
 
-def emit_fail(db, queue, message):
-    event = {
-        'id': message['id'],
-        'callback_uri': message['callback_uri'],
-        'type': 'FAIL',
-        'params': {}
-    }
+    try:
+        metadata = parse_metadata(input_audio_temp)
+    except Exception as e:
+        fail()
+        raise CerberusTaskFail("could not parse file {0}: {1}".format(
+            params['input_audio'], e))
 
-    info("{0}: {1}".format(queue, event))
-    db.rpush(queue, json.dumps(event))
+    emit_metadata(redis_config, metadata)
 
 @shared_task
 def transcode_av(message, storage_config, redis_config):
@@ -74,7 +67,7 @@ def transcode_av(message, storage_config, redis_config):
                     port=redis_config['port'],
                     db=redis_config['db'])
 
-    progress = functools.partial(emit_transcode_progress, message)
+    progress = functools.partial(emit_progress, message)
 
     success = functools.partial(emit_success, redis_db,
                         redis_config['queue_name'], message)
@@ -92,9 +85,9 @@ def transcode_av(message, storage_config, redis_config):
     info("start task with params: {0}, storage_config: {1}".format(params,
         storage_config))
 
-    if storage_config['type'] == 'webdav':
-        storage = WebDavStorage(url=storage_config['url'])
-    else:
+    try:
+        storage = create_storage(storage_config)
+    except Exception as e:
         fail()
         raise CerberusTaskFail("unknown storage type `{0}`".format(
             storage_config['type']))
@@ -167,10 +160,9 @@ def upload_to(params, service_config, storage_config, redis_config):
     fail = functools.partial(emit_fail, redis_db,
                         redis_config['queue_name'], message)
 
-
-    if storage_config['type'] == 'webdav':
-        storage = WebDavStorage(url=storage_config['url'])
-    else:
+    try:
+        storage = create_storage(storage_config)
+    except Exception as e:
         fail()
         raise CerberusTaskFail("unknown storage type `{0}`".format(
             storage_config['type']))

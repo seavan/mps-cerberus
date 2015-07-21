@@ -4,6 +4,11 @@ from os.path import join
 
 import requests
 
+DEFAULT_CONFIG = {
+  'type': 'webdav',
+  'url': 'http://127.0.0.1:80'
+}
+
 class WebDavStorage(object):
     def __init__(self, url=None):
         self.url = url

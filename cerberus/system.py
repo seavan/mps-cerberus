@@ -4,15 +4,9 @@ import os
 import pexpect
 import subprocess
 
-def run(cmd):
-    p = subprocess.Popen(cmd, shell=True, close_fds=True,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    rc = p.wait()
-    return (rc, p.stdout.read(), p.stderr.read())
-
 def run_ffmpeg(cmd, progress_handler=None):
 
+    # Отключение цветного stdout в ffmpeg (см. man ffmpeg)
     os.environ['AV_LOG_FORCE_NOCOLOR'] = "true"
 
     def parse_duration_line(line):

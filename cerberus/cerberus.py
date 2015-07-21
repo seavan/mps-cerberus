@@ -56,6 +56,11 @@ class Cerberus(object):
                 storage_config=self.config['transcode']['storage'],
                 redis_config=self.config['transcode']['redis'])
 
+        elif message['type'] == "PARSE_METADATA":
+            parse_metadata.delay(message,
+                storage_config=self.config['parse']['storage'],
+                redis_config=self.config['parse']['redis'])
+
         elif message['type'] == "UPLOAD_TO":
             upload_to.delay(message['params'],
                 service_config=self.config['service'],
