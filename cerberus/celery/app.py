@@ -18,7 +18,10 @@ except KeyError:
     sys.exit(1)
 
 default_config = {
-    'celery': {}
+  'celery': {
+    'CELERY_RESULT_BACKEND': 'redis://localhost',
+    'BROKER_URL': 'redis://localhost/0'
+  }
 }
 
 try:
