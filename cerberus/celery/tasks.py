@@ -11,7 +11,7 @@ from tempfile import NamedTemporaryFile as TempFile
 
 from cerberus.audio import *
 from cerberus.system import *
-from cerberus.storage import *
+from cerberus.storages import *
 from cerberus.services import *
 
 from .emits import *

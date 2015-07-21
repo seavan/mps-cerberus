@@ -5,8 +5,6 @@ import tempfile
 import gdata.youtube
 import gdata.youtube.service
 
-from cerberus.storage import *
-
 class YouTube(object):
     def __init__(self, config, storage):
         self.config = config
