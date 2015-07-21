@@ -6,9 +6,6 @@ import redis
 
 from .logger import *
 
-def emit_metadata(message, metadata):
-    pass
-
 def emit_progress(message, progress):
     event = {
         'id': message['id'],
@@ -26,12 +23,12 @@ def emit_progress(message, progress):
     except Exception as e:
         warn("could not send progress event: {0}".format(e))
 
-def emit_success(db, queue, message):
+def emit_success(db, queue, message, params={}):
     event = {
         'id': message['id'],
         'callback_uri': message['callback_uri'],
         'type': 'SUCCESS',
-        'params': {}
+        'params': params
     }
 
     info("{0}: {1}".format(queue, event))
