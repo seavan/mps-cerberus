@@ -2,18 +2,8 @@ celery:
   CELERY_RESULT_BACKEND: redis://localhost
   BROKER_URL: redis://localhost/0
 
-service:
+services:
   youtube:
     email: audioclick1@gmail.com
     password: "********"
     source: audioclick
-
-transcode:
-  storage:
-    type: webdav
-    url: http://127.0.0.1
-  redis:
-    host: 127.0.0.1
-    port: 6379
-    db: 1
-    queue_name: transcode_results
