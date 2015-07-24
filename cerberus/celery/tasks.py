@@ -49,8 +49,7 @@ def parse_metadata(message, config):
 
         info("input_audio downloaded to `{0}`".format(input_audio_temp.name))
 
-        metadata = parse_metadata(input_audio_temp)
-
+        metadata = get_metadata(input_audio_temp.name)
         for x in [input_audio_temp]:
             os.unlink(x.name)
     except Exception as e:

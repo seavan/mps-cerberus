@@ -4,7 +4,7 @@ import mutagen
 
 def get_vorbis_comment(obj, key):
     try:
-        value = obj['key'][0]
+        value = obj[key][0]
     except (KeyError, ValueError) as e:
         return None
 
@@ -12,13 +12,13 @@ def get_vorbis_comment(obj, key):
 
 def get_id3_tag(obj, key):
     try:
-        value = obj.tags['key'].text[0]
+        value = obj.tags[key].text[0]
     except Exception as e:
         return None
 
     return value
 
-def parse_metadata(filename):
+def get_metadata(filename):
     result = {
         "album": None,
         "artist": None,
