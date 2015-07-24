@@ -22,8 +22,8 @@ class YouTube(object):
         media_group = gdata.media.Group(
             description=gdata.media.Description(description_type='plain',
                 text=title),
-            keywords=gdata.media.Keywords(),
-            category=[[]gdata.media.Category(
+            keywords=gdata.media.Keywords(text='music'),
+            category=[gdata.media.Category(
                 text='Music',
                 scheme='http://gdata.youtube.com/schemas/2007/categories.cat',
                 label='Music')],

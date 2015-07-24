@@ -8,7 +8,7 @@ __all__ = ['WebDavStorage', 'create_storage']
 
 def create_storage(config):
 
-    config['type'] == 'webdav':
+    if config['type'] == 'webdav':
         storage = WebDavStorage(url=config['url'])
     else:
         raise UnknownStorage(config['type'])
