@@ -1,0 +1,3 @@
+#!/bin/bash
+
+celery -A cerberus worker --app=cerberus.celery.app:app --loglevel=info
