@@ -41,7 +41,7 @@ def emit_fail(db, queue, message):
         'callback_uri': message['callback_uri'],
         'type': 'FAIL',
         'params': {
-          'code': '0',
+          'code': 0,
           'message': 'because of reasons'
         }
     }

@@ -12,11 +12,20 @@ def get_vorbis_comment(obj, key):
 
 def get_id3_tag(obj, key):
     try:
-        value = obj.tags[key].text[0]
+        text = obj.tags[key].text
     except Exception as e:
         return None
 
-    return value
+    # XXX: copy-paste from mid3iconv
+    def conv(uni):
+        return uni.encode('iso-8859-1').decode('cp1251')
+
+    try:
+        text = [conv(x) for x in text]
+    except (UnicodeError, LookupError):
+        pass
+
+    return text[0]
 
 def get_metadata(filename):
     result = {
