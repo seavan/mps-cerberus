@@ -206,13 +206,12 @@ def upload(message, config, service_config):
     params = message['params']
 
     try:
-        storage = create_storage(config['config'])
-
-        service = create_service(params['service_type'], service_config, storage)
-
-        uploader.upload(filename=params['filename'],
-            description=params['description'],
-            category=params['category'])
+        storage = create_storage(config['storage'])
+        service = create_service(params['service'], service_config, storage)
+        service.upload(params['filename'],
+            title=params['description'],
+            category=params['category'],
+            keywords=params['keywords'])
     except Exception as e:
         fail()
         raise e
@@ -230,4 +229,22 @@ def delete(message, config, service_config):
     :param service_config:
     :return: None
     """
-    pass
+
+    redis_db = redis.StrictRedis(host=config['redis']['host'],
+                    port=config['redis']['port'],
+                    db=config['redis']['db'])
+
+    success = functools.partial(emit_success, redis_db,
+                        config['redis']['queue_name'], message)
+
+    fail = functools.partial(emit_fail, redis_db,
+                        config['redis']['queue_name'], message)
+
+    params = message['params']
+
+    try:
+        service = create_service(params['service'], service_config)
+        service.delete(params['video_id'])
+    except Exception as e:
+        fail()
+        raise e

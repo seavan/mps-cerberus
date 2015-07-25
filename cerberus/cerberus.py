@@ -61,11 +61,11 @@ class Cerberus(object):
             parse_metadata.delay(message, self.config['tasks']['parse_metadata'])
 
         elif message['type'] == "UPLOAD":
-            upload.delay(message['params'], self.config['tasks']['upload'],
+            upload.delay(message, self.config['tasks']['upload'],
                 self.config['services'])
 
         elif message['type'] == "DELETE":
-            delete.delay(message['params'], self.config['tasks']['delete'],
+            delete.delay(message, self.config['tasks']['delete'],
                 self.config['services'])
 
         else:

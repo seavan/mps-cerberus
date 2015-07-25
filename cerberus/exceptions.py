@@ -5,3 +5,6 @@ class UnknownService(Exception):
 
 class UnknownStorage(Exception):
     pass
+
+class UnknownErrorCode(Exception):
+    pass
