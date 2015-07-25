@@ -29,7 +29,8 @@ def parse_metadata(message, config):
 
     redis_db = redis.StrictRedis(host=config['redis']['host'],
                     port=config['redis']['port'],
-                    db=config['redis']['db'])
+                    db=config['redis']['db'],
+                    decode_responses=True)
 
     success = functools.partial(emit_success, redis_db,
                         config['redis']['queue_name'], message)

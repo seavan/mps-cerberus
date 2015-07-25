@@ -19,7 +19,8 @@ def emit_progress(message, progress):
     # XXX: Убрать хардкод timeout
     info("{0}: {1}".format(event))
     try:
-        requests.post(message['callback_uri'], data=json.dumps(event), timeout=1)
+        requests.post(message['callback_uri'],
+            data=json.dumps(event, ensure_ascii=False), timeout=1)
     except Exception as e:
         warn("could not send progress event: {0}".format(e))
 
@@ -32,7 +33,7 @@ def emit_success(db, queue, message, params={}):
     }
 
     info("{0}: {1}".format(queue, event))
-    db.rpush(queue, json.dumps(event))
+    db.rpush(queue, json.dumps(event, ensure_ascii=False).encode('utf-8'))
 
 def emit_fail(db, queue, message):
     event = {
@@ -46,4 +47,4 @@ def emit_fail(db, queue, message):
     }
 
     info("{0}: {1}".format(queue, event))
-    db.rpush(queue, json.dumps(event))
+    db.rpush(queue, json.dumps(event, ensure_ascii=False).encode('utf-8'))
