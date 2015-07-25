@@ -4,7 +4,7 @@ from .youtube import YouTube
 
 from cerberus.exceptions import UnknownService
 
-__all__ = ['YouTube', 'create_service']
+__all__ = ['create_service']
 
 def create_service(name, config, storage=None):
 

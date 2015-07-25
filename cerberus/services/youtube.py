@@ -5,7 +5,9 @@ import tempfile
 import gdata.youtube
 import gdata.youtube.service
 
-class YouTube(object):
+from .interface import BaseService
+
+class YouTube(BaseService):
     def __init__(self, config, storage=None):
         self.config = config
 
