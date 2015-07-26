@@ -4,7 +4,9 @@ from os.path import join
 
 import requests
 
-class WebDavStorage(object):
+from .interface import BaseStorage
+
+class WebDavStorage(BaseStorage):
     def __init__(self, url=None):
         self.url = url
 
