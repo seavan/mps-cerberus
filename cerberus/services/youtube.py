@@ -1,7 +1,5 @@
 # encoding: utf-8
 
-import tempfile
-
 import gdata.youtube
 import gdata.youtube.service
 
