@@ -7,7 +7,7 @@ import functools
 from celery import shared_task
 
 from os.path import splitext
-from tempfile import NamedTemporaryFile as TempFile
+from tempfile import NamedTemporaryFile
 
 from cerberus.audio import *
 from cerberus.system import *
@@ -25,6 +25,7 @@ class Context(object):
                     port=config['redis']['port'],
                     db=config['redis']['db'],
                     decode_responses=True)
+        self.files_to_remove = []
 
     def fail(self):
         return functools.partial(emit_fail, self.db,
@@ -36,6 +37,19 @@ class Context(object):
 
     def progress(self):
         return functools.partial(emit_progress, self.message)
+
+    def make_temp(self, suffix=None):
+        f = NamedTemporaryFile(delete=False, suffix=suffix)
+        self.files_to_remove.append(f)
+        return f
+
+    def unlink_temp(self):
+        try:
+            if not self.config['keep_data']:
+                for x in self.files_to_remove:
+                    os.unlink(x.name)
+        except:
+            pass
 
 @shared_task
 def parse_metadata(message, config):
@@ -53,19 +67,19 @@ def parse_metadata(message, config):
     try:
         storage = create_storage(config['storage'])
 
-        input_audio_temp = TempFile(delete=False,
-                            suffix=splitext(params['input_audio'])[1])
+        input_audio_temp = ctx.make_temp(suffix=splitext(params['input_audio'])[1])
 
         storage.download_to(params['input_audio'], input_audio_temp.name)
 
         info("input_audio downloaded to `{0}`".format(input_audio_temp.name))
 
         metadata = get_metadata(input_audio_temp.name)
-        for x in [input_audio_temp]:
-            os.unlink(x.name)
     except Exception as e:
         ctx.fail()
         raise e
+
+    finally:
+        ctx.unlink_temp()
 
     ctx.success(metadata)
 
@@ -89,11 +103,8 @@ def transcode_a(message, config):
     try:
         storage = create_storage(config['storage'])
 
-        input_audio_temp = TempFile(delete=False,
-                            suffix=splitext(params['input_audio'])[1])
-        output_audio_temp = TempFile(delete=False,
-                            suffix=splitext(params['output_audio'])[1])
-
+        input_audio_temp = ctx.make_temp(suffix=splitext(params['input_audio'])[1])
+        output_audio_temp = ctx.make_temp(suffix=splitext(params['output_audio'])[1])
 
         storage.download_to(params['input_audio'], input_audio_temp.name)
         info("input_audio downloaded to `{0}`".format(input_audio_temp.name))
@@ -106,12 +117,12 @@ def transcode_a(message, config):
 
         storage.upload(output_audio_temp.name, params['output_video'])
 
-        if not config['keep_data']:
-            for x in [input_audio_temp, output_audio_temp]:
-                os.unlink(x.name)
     except Exception as e:
         ctx.fail()
         raise e
+
+    finally:
+        ctx.unlink_temp()
 
     ctx.success()
 
@@ -136,13 +147,9 @@ def transcode_av(message, config):
     try:
         storage = create_storage(config['storage'])
 
-        input_audio_temp = TempFile(delete=False,
-                            suffix=splitext(params['input_audio'])[1])
-        input_picture_temp = TempFile(delete=False,
-                            suffix=splitext(params['input_picture'])[1])
-        output_video_temp = TempFile(delete=False,
-                            suffix=splitext(params['output_video'])[1])
-
+        input_audio_temp = ctx.make_temp(suffix=splitext(params['input_audio'])[1])
+        input_picture_temp = ctx.make_temp(suffix=splitext(params['input_picture'])[1])
+        output_video_temp = ctx.make_temp(suffix=splitext(params['output_video'])[1])
 
         storage.download_to(params['input_audio'], input_audio_temp.name)
         info("input_audio downloaded to `{0}`".format(input_audio_temp.name))
@@ -159,12 +166,12 @@ def transcode_av(message, config):
 
         storage.upload(output_video_temp.name, params['output_video'])
 
-        if not config['keep_data']:
-            for x in [input_audio_temp, input_picture_temp, output_video_temp]:
-                os.unlink(x.name)
     except Exception as e:
         ctx.fail()
         raise e
+
+    finally:
+        ctx.unlink_temp()
 
     ctx.success()
 
