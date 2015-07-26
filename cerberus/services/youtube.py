@@ -1,12 +1,14 @@
 # encoding: utf-8
 
+import os
+
 import gdata.youtube
 import gdata.youtube.service
 
 from .interface import BaseService
 
 class YouTube(BaseService):
-    def __init__(self, config, storage=None):
+    def __init__(self, config):
         self.config = config
 
         self.y = gdata.youtube.service.YouTubeService()
@@ -15,19 +17,18 @@ class YouTube(BaseService):
         self.y.password = self.config['password']
         self.y.source = self.config['source']
         self.y.ProgrammaticLogin()
+        self.y.developer_key = self.config['developer_key']
 
-        self.storage = storage
-
-    def upload(self, filename="", title="", category="", keywords=[]):
+    def upload(self, filename="", title="", description="" ,category="", keywords=[]):
         media_group = gdata.media.Group(
-            description=gdata.media.Description(description_type='plain',
-                text=title),
-            keywords=gdata.media.Keywords(text=", ".join(keywords)),
-            category=[gdata.media.Category(
-                text=category,
-                scheme='http://gdata.youtube.com/schemas/2007/categories.cat',
-                label=category)],
-            player=None
+          title=gdata.media.Title(text=title),
+          description=gdata.media.Description(description_type='plain', text=description),
+          keywords=gdata.media.Keywords(text=", ".join(keywords)),
+          category=[gdata.media.Category(
+              text=category,
+              scheme='http://gdata.youtube.com/schemas/2007/categories.cat',
+              label=category)],
+          player=None
         )
 
         # TODO: Добавить гео-локацию
@@ -35,7 +36,10 @@ class YouTube(BaseService):
         # where.set_location(())
 
         video_entry = gdata.youtube.YouTubeVideoEntry(media=media_group)
-        self.y.InsertVideoEntry(video_entry, filename)
+        uploaded_video_entry = self.y.InsertVideoEntry(video_entry, filename)
+
+        # XXX: По-моему это не лучший способ добыть video_id
+        return {'video_id': os.path.basename(uploaded_video_entry.id.text)}
 
     def delete(self, video_id):
         self.y.DeleteVideoEntry(video_id)

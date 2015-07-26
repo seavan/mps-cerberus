@@ -2,12 +2,12 @@
 
 import os
 import json
-import functools
+import tempfile
+
+from os.path import splitext, join, basename
+from shutil import rmtree
 
 from celery import shared_task
-
-from os.path import splitext
-from tempfile import NamedTemporaryFile
 
 from cerberus.audio import *
 from cerberus.system import *
@@ -25,29 +25,42 @@ class Context(object):
                     port=config['redis']['port'],
                     db=config['redis']['db'],
                     decode_responses=True)
+        self.dirs_to_remove = []
         self.files_to_remove = []
 
     def fail(self):
-        return functools.partial(emit_fail, self.db,
-                    self.config['redis']['queue_name'], self.message)
+        return emit_fail(self.db, self.config['redis']['queue_name'],
+                    self.message)
 
-    def success(self):
-        return functools.partial(emit_success, self.db,
-                    self.config['redis']['queue_name'], self.message)
+    def success(self, params):
+        return emit_success(self.db, self.config['redis']['queue_name'],
+                    self.message, params)
 
     def progress(self):
-        return functools.partial(emit_progress, self.message)
+        return emit_progress(self.message)
 
     def mktemp(self, suffix=None):
-        f = NamedTemporaryFile(delete=False, suffix=suffix)
+        f = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
         self.files_to_remove.append(f)
         return f
+
+    def mkdtemp(self):
+        d = tempfile.mkdtemp()
+        self.dirs_to_remove.append(d)
+        return d
 
     def clean(self):
         try:
             if not self.config['keep_data']:
                 for x in self.files_to_remove:
                     os.unlink(x.name)
+        except:
+            pass
+
+        try:
+            if not self.config['keep_data']:
+                for x in self.dirs_to_remove:
+                    rmtree(x)
         except:
             pass
 
@@ -189,14 +202,16 @@ def upload(message, config, service_config):
     params = message['params']
 
     try:
-        input_video_temp = ctx.mktemp(suffix=splitext(params['input_video'])[1])
+        temp_dir = ctx.mkdtemp()
+        input_video_temp = join(temp_dir, basename(params['input_video']))
 
         storage = create_storage(config['storage'])
-        storage.download_to(params['input_video'], input_video_temp.name)
+        storage.download_to(params['input_video'], input_video_temp)
 
         service = create_service(params['service'], service_config)
-        service.upload(input_video_temp.name,
-            title=params['description'],
+        metadata = service.upload(input_video_temp,
+            title=params['title'],
+            description=params['description'],
             category=params['category'],
             keywords=params['keywords'])
     except Exception as e:
@@ -205,7 +220,7 @@ def upload(message, config, service_config):
     finally:
         ctx.clean()
 
-    ctx.success()
+    ctx.success(metadata)
 
 @shared_task
 def delete(message, config, service_config):
