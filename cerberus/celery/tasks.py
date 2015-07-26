@@ -54,11 +54,7 @@ class Context(object):
             if not self.config['keep_data']:
                 for x in self.files_to_remove:
                     os.unlink(x.name)
-        except:
-            pass
 
-        try:
-            if not self.config['keep_data']:
                 for x in self.dirs_to_remove:
                     rmtree(x)
         except:
