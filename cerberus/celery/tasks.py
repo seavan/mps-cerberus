@@ -76,7 +76,7 @@ def parse_metadata(message, config):
         metadata = get_metadata(input_audio_temp.name)
     except Exception as e:
         ctx.fail()
-        raise e
+        raise
     finally:
         ctx.clean()
 
@@ -118,7 +118,7 @@ def transcode_a(message, config):
 
     except Exception as e:
         ctx.fail()
-        raise e
+        raise
     finally:
         ctx.clean()
 
@@ -166,7 +166,7 @@ def transcode_av(message, config):
 
     except Exception as e:
         ctx.fail()
-        raise e
+        raise
     finally:
         ctx.clean()
 
@@ -201,7 +201,7 @@ def upload(message, config, service_config):
             keywords=params['keywords'])
     except Exception as e:
         ctx.fail()
-        raise e
+        raise
     finally:
         ctx.clean()
 
@@ -227,7 +227,7 @@ def delete(message, config, service_config):
         service.delete(params['video_id'])
     except Exception as e:
         ctx.fail()
-        raise e
+        raise
     finally:
         ctx.clean()
 
