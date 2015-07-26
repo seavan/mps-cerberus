@@ -43,7 +43,7 @@ class Context(object):
         self.files_to_remove.append(f)
         return f
 
-    def unlink_temp(self):
+    def clean(self):
         try:
             if not self.config['keep_data']:
                 for x in self.files_to_remove:
@@ -77,9 +77,8 @@ def parse_metadata(message, config):
     except Exception as e:
         ctx.fail()
         raise e
-
     finally:
-        ctx.unlink_temp()
+        ctx.clean()
 
     ctx.success(metadata)
 
@@ -120,9 +119,8 @@ def transcode_a(message, config):
     except Exception as e:
         ctx.fail()
         raise e
-
     finally:
-        ctx.unlink_temp()
+        ctx.clean()
 
     ctx.success()
 
@@ -169,9 +167,8 @@ def transcode_av(message, config):
     except Exception as e:
         ctx.fail()
         raise e
-
     finally:
-        ctx.unlink_temp()
+        ctx.clean()
 
     ctx.success()
 
@@ -192,15 +189,21 @@ def upload(message, config, service_config):
     params = message['params']
 
     try:
+        input_video_temp = ctx.make_temp(suffix=splitext(params['input_video'])[1])
+
         storage = create_storage(config['storage'])
-        service = create_service(params['service'], service_config, storage)
-        service.upload(params['filename'],
+        storage.download_to(params['input_video'], input_video_temp.name)
+
+        service = create_service(params['service'], service_config)
+        service.upload(input_video_temp.name,
             title=params['description'],
             category=params['category'],
             keywords=params['keywords'])
     except Exception as e:
         ctx.fail()
         raise e
+    finally:
+        ctx.clean()
 
     ctx.success()
 
@@ -225,5 +228,7 @@ def delete(message, config, service_config):
     except Exception as e:
         ctx.fail()
         raise e
+    finally:
+        ctx.clean()
 
     ctx.success()

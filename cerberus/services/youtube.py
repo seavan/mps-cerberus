@@ -37,13 +37,7 @@ class YouTube(BaseService):
         # where.set_location(())
 
         video_entry = gdata.youtube.YouTubeVideoEntry(media=media_group)
-
-        # TODO: Сделать потоковое сохранение файла на диск
-        content = self.storage.download(filename)
-        video_file_location = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
-        video_file_location.write(content)
-
-        self.y.InsertVideoEntry(video_entry, video_file_location.name)
+        self.y.InsertVideoEntry(video_entry, filename)
 
     def delete(self, video_id):
         self.y.DeleteVideoEntry(video_id)

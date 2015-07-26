@@ -7,7 +7,7 @@ curl -v http://127.0.0.1:8080 -H 'Content-Type: application/json' -d@- <<EOF
   "type": "UPLOAD",
   "params": {
     "service": "youtube",
-    "filename": "output.mp4",
+    "input_video": "output.mp4",
     "description": "Test video",
     "category": "Music",
     "keywords": ["music", "test"]

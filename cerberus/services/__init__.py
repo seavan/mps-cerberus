@@ -6,10 +6,10 @@ from cerberus.exceptions import UnknownService
 
 __all__ = ['create_service']
 
-def create_service(name, config, storage=None):
+def create_service(name, config):
 
     if name == 'youtube':
-        service = YouTube(config['youtube'], storage)
+        service = YouTube(config['youtube'])
     else:
         raise UnknownService("unknown service `{0}`".format(name))
 
