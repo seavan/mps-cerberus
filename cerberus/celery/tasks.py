@@ -17,6 +17,26 @@ from cerberus.services import *
 from .emits import *
 from .logger import *
 
+class Context(object):
+    def __init__(self, message, config):
+        self.message = message
+        self.config = config
+        self.db = redis.StrictRedis(host=config['redis']['host'],
+                    port=config['redis']['port'],
+                    db=config['redis']['db'],
+                    decode_responses=True)
+
+    def fail(self):
+        return functools.partial(emit_fail, self.db,
+                    self.config['redis']['queue_name'], self.message)
+
+    def success(self):
+        return functools.partial(emit_success, self.db,
+                    self.config['redis']['queue_name'], self.message)
+
+    def progress(self):
+        return functools.partial(emit_progress, self.message)
+
 @shared_task
 def parse_metadata(message, config):
     """
@@ -27,17 +47,7 @@ def parse_metadata(message, config):
     :return None:
     """
 
-    redis_db = redis.StrictRedis(host=config['redis']['host'],
-                    port=config['redis']['port'],
-                    db=config['redis']['db'],
-                    decode_responses=True)
-
-    success = functools.partial(emit_success, redis_db,
-                        config['redis']['queue_name'], message)
-
-    fail = functools.partial(emit_fail, redis_db,
-                        config['redis']['queue_name'], message)
-
+    ctx = Context(message, config)
     params = message['params']
 
     try:
@@ -54,10 +64,10 @@ def parse_metadata(message, config):
         for x in [input_audio_temp]:
             os.unlink(x.name)
     except Exception as e:
-        fail()
+        ctx.fail()
         raise e
 
-    success(metadata)
+    ctx.success(metadata)
 
 
 @shared_task
@@ -71,18 +81,7 @@ def transcode_a(message, config):
     :return: None
     """
 
-    redis_db = redis.StrictRedis(host=config['redis']['host'],
-                    port=config['redis']['port'],
-                    db=config['redis']['db'])
-
-    progress = functools.partial(emit_progress, message)
-
-    success = functools.partial(emit_success, redis_db,
-                        config['redis']['queue_name'], message)
-
-    fail = functools.partial(emit_fail, redis_db,
-                        config['redis']['queue_name'], message)
-
+    ctx = Context(message, config)
     params = message['params']
 
     info("start task with params: {0}, config: {1}".format(params, config))
@@ -103,7 +102,7 @@ def transcode_a(message, config):
                                 input_audio=input_audio_temp.name,
                                 output_audio=output_audio_temp.name)
         info("run command `{0}`".format(cmd))
-        run_ffmpeg(cmd, progress_handler=progress)
+        run_ffmpeg(cmd, progress_handler=ctx.progress)
 
         storage.upload(output_audio_temp.name, params['output_video'])
 
@@ -111,10 +110,10 @@ def transcode_a(message, config):
             for x in [input_audio_temp, output_audio_temp]:
                 os.unlink(x.name)
     except Exception as e:
-        fail()
+        ctx.fail()
         raise e
 
-    success()
+    ctx.success()
 
 
 @shared_task
@@ -129,18 +128,7 @@ def transcode_av(message, config):
     :return: None
     """
 
-    redis_db = redis.StrictRedis(host=config['redis']['host'],
-                    port=config['redis']['port'],
-                    db=config['redis']['db'])
-
-    progress = functools.partial(emit_progress, message)
-
-    success = functools.partial(emit_success, redis_db,
-                        config['redis']['queue_name'], message)
-
-    fail = functools.partial(emit_fail, redis_db,
-                        config['redis']['queue_name'], message)
-
+    ctx = Context(message, config)
     params = message['params']
 
     info("start task with params: {0}, config: {1}".format(params, config))
@@ -167,7 +155,7 @@ def transcode_av(message, config):
                                 input_picture=input_picture_temp.name,
                                 output_video=output_video_temp.name)
         info("run command `{0}`".format(cmd))
-        run_ffmpeg(cmd, progress_handler=progress)
+        run_ffmpeg(cmd, progress_handler=ctx.progress)
 
         storage.upload(output_video_temp.name, params['output_video'])
 
@@ -175,10 +163,10 @@ def transcode_av(message, config):
             for x in [input_audio_temp, input_picture_temp, output_video_temp]:
                 os.unlink(x.name)
     except Exception as e:
-        fail()
+        ctx.fail()
         raise e
 
-    success()
+    ctx.success()
 
 
 @shared_task
@@ -193,16 +181,7 @@ def upload(message, config, service_config):
     :return: None
     """
 
-    redis_db = redis.StrictRedis(host=config['redis']['host'],
-                    port=config['redis']['port'],
-                    db=config['redis']['db'])
-
-    success = functools.partial(emit_success, redis_db,
-                        config['redis']['queue_name'], message)
-
-    fail = functools.partial(emit_fail, redis_db,
-                        config['redis']['queue_name'], message)
-
+    ctx = Context(message, config)
     params = message['params']
 
     try:
@@ -213,10 +192,10 @@ def upload(message, config, service_config):
             category=params['category'],
             keywords=params['keywords'])
     except Exception as e:
-        fail()
+        ctx.fail()
         raise e
 
-    success()
+    ctx.success()
 
 @shared_task
 def delete(message, config, service_config):
@@ -230,21 +209,14 @@ def delete(message, config, service_config):
     :return: None
     """
 
-    redis_db = redis.StrictRedis(host=config['redis']['host'],
-                    port=config['redis']['port'],
-                    db=config['redis']['db'])
-
-    success = functools.partial(emit_success, redis_db,
-                        config['redis']['queue_name'], message)
-
-    fail = functools.partial(emit_fail, redis_db,
-                        config['redis']['queue_name'], message)
-
+    ctx = Context(message, config)
     params = message['params']
 
     try:
         service = create_service(params['service'], service_config)
         service.delete(params['video_id'])
     except Exception as e:
-        fail()
+        ctx.fail()
         raise e
+
+    ctx.success()
