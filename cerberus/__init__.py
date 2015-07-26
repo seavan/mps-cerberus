@@ -15,7 +15,7 @@ from .cerberus  import Cerberus
 
 __all__ = ('run_script', 'celery')
 
-__version__ = "0.1.0"
+__version__ = "0.2.5"
 __author__ = "Eduard Snesarev"
 
 default_config = {
