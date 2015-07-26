@@ -38,7 +38,7 @@ class Context(object):
     def progress(self):
         return functools.partial(emit_progress, self.message)
 
-    def make_temp(self, suffix=None):
+    def mktemp(self, suffix=None):
         f = NamedTemporaryFile(delete=False, suffix=suffix)
         self.files_to_remove.append(f)
         return f
@@ -67,7 +67,7 @@ def parse_metadata(message, config):
     try:
         storage = create_storage(config['storage'])
 
-        input_audio_temp = ctx.make_temp(suffix=splitext(params['input_audio'])[1])
+        input_audio_temp = ctx.mktemp(suffix=splitext(params['input_audio'])[1])
 
         storage.download_to(params['input_audio'], input_audio_temp.name)
 
@@ -102,8 +102,8 @@ def transcode_a(message, config):
     try:
         storage = create_storage(config['storage'])
 
-        input_audio_temp = ctx.make_temp(suffix=splitext(params['input_audio'])[1])
-        output_audio_temp = ctx.make_temp(suffix=splitext(params['output_audio'])[1])
+        input_audio_temp = ctx.mktemp(suffix=splitext(params['input_audio'])[1])
+        output_audio_temp = ctx.mktemp(suffix=splitext(params['output_audio'])[1])
 
         storage.download_to(params['input_audio'], input_audio_temp.name)
         info("input_audio downloaded to `{0}`".format(input_audio_temp.name))
@@ -145,9 +145,9 @@ def transcode_av(message, config):
     try:
         storage = create_storage(config['storage'])
 
-        input_audio_temp = ctx.make_temp(suffix=splitext(params['input_audio'])[1])
-        input_picture_temp = ctx.make_temp(suffix=splitext(params['input_picture'])[1])
-        output_video_temp = ctx.make_temp(suffix=splitext(params['output_video'])[1])
+        input_audio_temp = ctx.mktemp(suffix=splitext(params['input_audio'])[1])
+        input_picture_temp = ctx.mktemp(suffix=splitext(params['input_picture'])[1])
+        output_video_temp = ctx.mktemp(suffix=splitext(params['output_video'])[1])
 
         storage.download_to(params['input_audio'], input_audio_temp.name)
         info("input_audio downloaded to `{0}`".format(input_audio_temp.name))
@@ -189,7 +189,7 @@ def upload(message, config, service_config):
     params = message['params']
 
     try:
-        input_video_temp = ctx.make_temp(suffix=splitext(params['input_video'])[1])
+        input_video_temp = ctx.mktemp(suffix=splitext(params['input_video'])[1])
 
         storage = create_storage(config['storage'])
         storage.download_to(params['input_video'], input_video_temp.name)
