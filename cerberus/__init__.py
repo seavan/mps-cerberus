@@ -103,6 +103,7 @@ default_config = {
     'youtube': {
       'login': None,
       'password': None,
+      'developer_key': None,
       'source': None
     }
   }

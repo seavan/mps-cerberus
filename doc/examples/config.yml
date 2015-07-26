@@ -4,6 +4,7 @@ celery:
 
 services:
   youtube:
-    email: audioclick1@gmail.com
-    password: "********"
+    email: audioclick1.staging@gmail.com
+    password: 50ZgvX6u0Z0EE1oXGZPU
+    developer_key: AI39si6wRpf26VKPnMxt5s4O0IeSOpDEOwAWuwUdOlFdoDfVQR0jh-IdBF65MrNYpHh0tyJHREJxacabRMbI_zN669Nvq4Fxtw
     source: audioclick
