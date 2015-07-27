@@ -3,7 +3,9 @@
 from os.path import join
 
 import requests
+from requests.exceptions import *
 
+from cerberus.exceptions import *
 from .interface import BaseStorage
 
 class WebDavStorage(BaseStorage):
@@ -11,15 +13,25 @@ class WebDavStorage(BaseStorage):
         self.url = url
 
     def download(self, src):
-        r = requests.get(join(self.url, src))
+        try:
+            r = requests.get(join(self.url, src))
+        except ConnectionError as e:
+            _raise(StorageDownloadError)
+
         return r.content
 
     def download_to(self, src, dst):
-        content = self.download(src)
+        try:
+            content = self.download(src)
 
-        # TODO: написать потоковое сохранение данных на диск
-        with open(dst, 'w') as f:
-            f.write(content)
+            # TODO: написать потоковое сохранение данных на диск
+            with open(dst, 'w') as f:
+                f.write(content)
+        except Exception as e:
+            _raise(StorageDownloadError)
 
     def upload(self, src, dst):
-        requests.put(join(self.url, dst), data=file(src))
+        try:
+            requests.put(join(self.url, dst), data=file(src))
+        except Exception as e:
+            _raise(StorageDownloadError)
