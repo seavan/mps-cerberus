@@ -13,7 +13,7 @@ from celery import Celery
 from .utils import *
 from .cerberus  import Cerberus
 
-__all__ = ('run_script', 'celery')
+__all__ = ('run_script', 'load_config', 'celery')
 
 __version__ = "0.2.5"
 __author__ = "Eduard Snesarev"
@@ -104,15 +104,27 @@ default_config = {
       'login': None,
       'password': None,
       'source': None
+    },
+    'promodj': {
+      'login': None,
+      'password': None,
+      'form': {
+        'url': 'http://promodj.com/login',
+        'login': 'login',
+        'password': 'password'
+      }
     }
   }
 }
 
-def run_script():
+def load_options():
     p = OptionParser()
     p.add_option('-c', '--config', dest="config_path", help="path to config.yml")
     (opt, args) = p.parse_args()
+    return opt
 
+def load_config():
+    opt = load_options()
     if opt.config_path:
         try:
             config = yaml.load(file(opt.config_path))
@@ -127,6 +139,10 @@ def run_script():
         sys.exit(1)
 
     config = merge(default_config, config)
+    return config
+
+def run_script():
+    config = load_config()
     app = Celery('cerberus.celery')
     app.conf.update(**config['celery'])
 
