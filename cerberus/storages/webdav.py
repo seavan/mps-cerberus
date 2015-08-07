@@ -13,6 +13,7 @@ class WebDavStorage(BaseStorage):
         self.url = url
 
     def download(self, src):
+        src = src[1:] if src.startswith('/') else src
         try:
             r = requests.get(join(self.url, src))
         except ConnectionError as e:
@@ -31,6 +32,7 @@ class WebDavStorage(BaseStorage):
             reraise(StorageDownloadError)
 
     def upload(self, src, dst):
+        dst = dst[1:] if dst.startswith('/') else dst
         try:
             requests.put(join(self.url, dst), data=file(src))
         except Exception as e:
