@@ -32,7 +32,7 @@ class Context(object):
         return emit_fail(self.db, self.config['redis']['queue_name'],
                     self.message)
 
-    def success(self, params):
+    def success(self, params={}):
         return emit_success(self.db, self.config['redis']['queue_name'],
                     self.message, params)
 
