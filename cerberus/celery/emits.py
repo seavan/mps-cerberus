@@ -35,14 +35,21 @@ def emit_success(db, queue, message, params={}):
     info("{0}: {1}".format(queue, event))
     db.rpush(queue, json.dumps(event, ensure_ascii=False).encode('utf-8'))
 
-def emit_fail(db, queue, message):
+def emit_fail(db, queue, message, exception):
+    if hasattr(exception, 'code') and hasattr(exception, 'message'):
+        err_code = exception.code
+        err_message = exception.message
+    else:
+        err_code = 600
+        err_message = "Internal backend error"
+
     event = {
         'id': message['id'],
         'callback_uri': message['callback_uri'],
         'type': 'FAIL',
         'params': {
-          'code': 0,
-          'message': 'because of reasons'
+          'code': err_code,
+          'message': err_message
         }
     }
 

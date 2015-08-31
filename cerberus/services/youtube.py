@@ -5,6 +5,7 @@ import os
 import gdata.youtube
 import gdata.youtube.service
 
+from cerberus.exceptions import *
 from .interface import BaseService
 
 class YouTube(BaseService):
@@ -19,7 +20,13 @@ class YouTube(BaseService):
         self.y.ProgrammaticLogin()
         self.y.developer_key = self.config['developer_key']
 
-    def upload(self, filename="", title="", description="" ,category="", keywords=[]):
+    def upload(self, *args, **kwargs):
+        try:
+            self._upload(*args, **kwargs)
+        except Exception as e:
+            _raise(ServiceUploadError)
+
+    def _upload(self, filename="", title="", description="" ,category="", keywords=[]):
         media_group = gdata.media.Group(
           title=gdata.media.Title(text=title),
           description=gdata.media.Description(description_type='plain', text=description),
@@ -42,4 +49,7 @@ class YouTube(BaseService):
         return {'video_id': os.path.basename(uploaded_video_entry.id.text)}
 
     def delete(self, video_id):
-        self.y.DeleteVideoEntry(video_id)
+        try:
+            self.y.DeleteVideoEntry(video_id)
+        except Exception as e:
+            _raise(ServiceDeleteError)

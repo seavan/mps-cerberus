@@ -28,9 +28,9 @@ class Context(object):
         self.dirs_to_remove = []
         self.files_to_remove = []
 
-    def fail(self):
+    def fail(self, exc):
         return emit_fail(self.db, self.config['redis']['queue_name'],
-                    self.message)
+                    self.message, exc)
 
     def success(self, params={}):
         return emit_success(self.db, self.config['redis']['queue_name'],
@@ -54,11 +54,7 @@ class Context(object):
             if not self.config['keep_data']:
                 for x in self.files_to_remove:
                     os.unlink(x.name)
-        except:
-            pass
 
-        try:
-            if not self.config['keep_data']:
                 for x in self.dirs_to_remove:
                     rmtree(x)
         except:
@@ -88,7 +84,7 @@ def parse_metadata(message, config):
 
         metadata = get_metadata(input_audio_temp.name)
     except Exception as e:
-        ctx.fail()
+        ctx.fail(e)
         raise
     finally:
         ctx.clean()
@@ -130,7 +126,7 @@ def transcode_a(message, config):
         storage.upload(output_audio_temp.name, params['output_video'])
 
     except Exception as e:
-        ctx.fail()
+        ctx.fail(e)
         raise
     finally:
         ctx.clean()
@@ -178,7 +174,7 @@ def transcode_av(message, config):
         storage.upload(output_video_temp.name, params['output_video'])
 
     except Exception as e:
-        ctx.fail()
+        ctx.fail(e)
         raise
     finally:
         ctx.clean()
@@ -215,7 +211,7 @@ def upload(message, config, service_config):
             category=params['category'],
             keywords=params['keywords'])
     except Exception as e:
-        ctx.fail()
+        ctx.fail(e)
         raise
     finally:
         ctx.clean()
@@ -241,7 +237,7 @@ def delete(message, config, service_config):
         service = create_service(params['service'], service_config)
         service.delete(params['video_id'])
     except Exception as e:
-        ctx.fail()
+        ctx.fail(e)
         raise
     finally:
         ctx.clean()
