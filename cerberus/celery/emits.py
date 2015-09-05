@@ -3,6 +3,7 @@
 import json
 
 import redis
+import requests
 
 from .logger import *
 
@@ -17,7 +18,7 @@ def emit_progress(message, progress):
     }
 
     # XXX: Убрать хардкод timeout
-    info("{0}: {1}".format(event))
+    info("progress: {0}".format(event))
     try:
         requests.post(message['callback_uri'],
             data=json.dumps(event, ensure_ascii=False), timeout=1)

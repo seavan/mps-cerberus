@@ -32,7 +32,7 @@ default_config = {
   'tasks': {
     'transcode_av': {
       'keep_data': False,
-      'ffmpeg_command_template': '/usr/bin/ffmpeg -y -loop 1 -i {input_picture} -i {input_audio} -shortest -vcodec libx264 -acodec aac -strict experimental {output_video}',
+      'ffmpeg_command_template': '/usr/bin/ffmpeg -y -loop 1 -i {input_picture} -i {input_audio} -shortest -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -vcodec libx264 -acodec aac -strict experimental {output_video}',
       'storage': {
         'type': 'webdav',
         'url': 'http://127.0.0.1:80'

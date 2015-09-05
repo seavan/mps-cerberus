@@ -16,7 +16,7 @@ class WebDavStorage(BaseStorage):
         try:
             r = requests.get(join(self.url, src))
         except ConnectionError as e:
-            _raise(StorageDownloadError)
+            reraise(StorageDownloadError)
 
         return r.content
 
@@ -28,10 +28,10 @@ class WebDavStorage(BaseStorage):
             with open(dst, 'w') as f:
                 f.write(content)
         except Exception as e:
-            _raise(StorageDownloadError)
+            reraise(StorageDownloadError)
 
     def upload(self, src, dst):
         try:
             requests.put(join(self.url, dst), data=file(src))
         except Exception as e:
-            _raise(StorageDownloadError)
+            reraise(StorageDownloadError)

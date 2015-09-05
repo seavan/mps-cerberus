@@ -4,8 +4,9 @@ import os
 import json
 import tempfile
 
-from os.path import splitext, join, basename
 from shutil import rmtree
+from functools import partial
+from os.path import splitext, join, basename
 
 from celery import shared_task
 
@@ -28,6 +29,8 @@ class Context(object):
         self.dirs_to_remove = []
         self.files_to_remove = []
 
+        self.progress = partial(emit_progress, self.message)
+
     def fail(self, exc):
         return emit_fail(self.db, self.config['redis']['queue_name'],
                     self.message, exc)
@@ -35,9 +38,6 @@ class Context(object):
     def success(self, params={}):
         return emit_success(self.db, self.config['redis']['queue_name'],
                     self.message, params)
-
-    def progress(self):
-        return emit_progress(self.message)
 
     def mktemp(self, suffix=None):
         f = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)

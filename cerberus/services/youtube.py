@@ -22,9 +22,9 @@ class YouTube(BaseService):
 
     def upload(self, *args, **kwargs):
         try:
-            self._upload(*args, **kwargs)
+            return self._upload(*args, **kwargs)
         except Exception as e:
-            _raise(ServiceUploadError)
+            reraise(ServiceUploadError)
 
     def _upload(self, filename="", title="", description="" ,category="", keywords=[]):
         media_group = gdata.media.Group(
@@ -52,4 +52,4 @@ class YouTube(BaseService):
         try:
             self.y.DeleteVideoEntry(video_id)
         except Exception as e:
-            _raise(ServiceDeleteError)
+            reraise(ServiceDeleteError)

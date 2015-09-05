@@ -18,15 +18,18 @@ def run_ffmpeg(cmd, progress_handler=None):
         return msecs + (secs * 100) + (minutes * 60 * 100) + (hours * 60 * 60 * 100)
 
     def parse_progress_line(line):
-        (secs, msecs) = [int(x) for x in line.split('.')]
+        (hours, minutes, secs) = line.split(":")
+        (secs, msecs) = secs.split(".")
 
-        return msecs + (secs * 100)
+        (hours, minutes, secs, msecs) = [int(x) for x in (hours, minutes, secs, msecs)]
+
+        return msecs + (secs * 100) + (minutes * 60 * 100) + (hours * 60 * 60 * 100)
 
 
     child = pexpect.spawn(cmd)
     patterns = child.compile_pattern_list([
         pexpect.EOF,
-        "frame=\ .*time=([0-9.]+)\ ",
+        "frame=\ .*time=([0-9:.]+)\ ",
         "\ \ Duration:\ ([0-9:.]+),"
     ])
 
@@ -43,7 +46,8 @@ def run_ffmpeg(cmd, progress_handler=None):
             progress_line = child.match.group(1)
             progress_time = parse_progress_line(progress_line)
 
-            progress = progress_time * 100 / duration
+            real_progress = progress_time * 100 / duration
+            progress = 100 if real_progress > 100 else real_progress
             if progress_handler:
                 progress_handler(progress)
 

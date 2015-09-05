@@ -2,7 +2,7 @@
 
 import sys
 
-def _raise(exc):
+def reraise(exc):
     trace = sys.exc_info()[2]
     raise exc, None, trace
 
