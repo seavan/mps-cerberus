@@ -1,11 +1,21 @@
 # encoding: utf-8
 
+import os
 import json
 
 import redis
 import requests
+import jsonschema
 
 from .logger import *
+
+schema_filename = schema_filename = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    '..',
+    'schemas', 'schemas',
+    'callback_task.json')
+
+schema = json.loads(file(schema_filename, 'r').read())
 
 def emit_progress(message, progress):
     event = {
@@ -17,8 +27,15 @@ def emit_progress(message, progress):
         }
     }
 
+    try:
+        jsonschema.validate(event, schema)
+    except Exception as e:
+        error("invalid event: doesn't match by schema, event: {0}".format(event))
+        error("error: {0}".format(e))
+        return
+
     # XXX: Убрать хардкод timeout
-    info("progress: {0}".format(event))
+    info("emit event to {0}: {1}".format(event['callback_uri'], event))
     try:
         requests.post(message['callback_uri'],
             data=json.dumps(event, ensure_ascii=False), timeout=1)
@@ -33,7 +50,15 @@ def emit_success(db, queue, message, params={}):
         'params': params
     }
 
-    info("{0}: {1}".format(queue, event))
+    try:
+        jsonschema.validate(event, schema)
+    except Exception as e:
+        error("invalid event: doesn't match by schema, event: {0}".format(event))
+        error("error: {0}".format(e))
+        return
+
+
+    info("emit event to {0}: {1}".format(queue, event))
     db.rpush(queue, json.dumps(event, ensure_ascii=False).encode('utf-8'))
 
 def emit_fail(db, queue, message, exception):
@@ -54,5 +79,12 @@ def emit_fail(db, queue, message, exception):
         }
     }
 
-    info("{0}: {1}".format(queue, event))
+    try:
+        jsonschema.validate(event, schema)
+    except Exception as e:
+        error("invalid event: doesn't match by schema, event: {0}".format(event))
+        error("error: {0}".format(e))
+        return
+
+    info("emit event to {0}: {1}".format(queue, event))
     db.rpush(queue, json.dumps(event, ensure_ascii=False).encode('utf-8'))

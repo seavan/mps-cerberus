@@ -26,7 +26,7 @@ class YouTube(BaseService):
         except Exception as e:
             reraise(ServiceUploadError)
 
-    def _upload(self, filename="", title="", description="" ,category="", keywords=[]):
+    def _upload(self, filename=None, title=None, description=None, category=None, keywords=[]):
         media_group = gdata.media.Group(
           title=gdata.media.Title(text=title),
           description=gdata.media.Description(description_type='plain', text=description),
@@ -48,7 +48,7 @@ class YouTube(BaseService):
         # XXX: По-моему это не лучший способ добыть video_id
         return {'video_id': os.path.basename(uploaded_video_entry.id.text)}
 
-    def delete(self, video_id):
+    def delete(self, video_id=None):
         try:
             self.y.DeleteVideoEntry(video_id)
         except Exception as e:

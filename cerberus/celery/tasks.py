@@ -4,6 +4,7 @@ import os
 import json
 import tempfile
 
+from copy import deepcopy
 from shutil import rmtree
 from functools import partial
 from os.path import splitext, join, basename
@@ -199,17 +200,19 @@ def upload(message, config, service_config):
 
     try:
         temp_dir = ctx.mkdtemp()
-        input_video_temp = join(temp_dir, basename(params['input_video']))
+        input_file_temp = join(temp_dir, basename(params['input_file']))
 
         storage = create_storage(config['storage'])
-        storage.download_to(params['input_video'], input_video_temp)
+        storage.download_to(params['input_file'], input_file_temp)
 
         service = create_service(params['service'], service_config)
-        metadata = service.upload(input_video_temp,
-            title=params['title'],
-            description=params['description'],
-            category=params['category'],
-            keywords=params['keywords'])
+
+        upload_params = deepcopy(params)
+        upload_params.pop('input_file')
+        upload_params.pop('service')
+        upload_params['filename'] = input_file_temp
+
+        metadata = service.upload(**upload_params)
     except Exception as e:
         ctx.fail(e)
         raise
@@ -235,7 +238,11 @@ def delete(message, config, service_config):
 
     try:
         service = create_service(params['service'], service_config)
-        service.delete(params['video_id'])
+
+        delete_params = deepcopy(params)
+        delete_params.pop('service')
+
+        service.delete(**delete_params)
     except Exception as e:
         ctx.fail(e)
         raise

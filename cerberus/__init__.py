@@ -105,6 +105,12 @@ default_config = {
       'password': None,
       'developer_key': None,
       'source': None
+    },
+    'soundcloud': {
+      'client_id': None,
+      'client_secret': None,
+      'username': None,
+      'password': None
     }
   }
 }
