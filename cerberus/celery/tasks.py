@@ -74,6 +74,8 @@ def parse_metadata(message, config):
     ctx = Context(message, config)
     params = message['params']
 
+    info("start task with params: {0}, config: {1}".format(params, config))
+
     try:
         storage = create_storage(config['storage'])
 
@@ -198,6 +200,8 @@ def upload(message, config, service_config):
     ctx = Context(message, config)
     params = message['params']
 
+    info("start task with params: {0}, config: {1}".format(params, config))
+
     try:
         temp_dir = ctx.mkdtemp()
         input_file_temp = join(temp_dir, basename(params['input_file']))
@@ -235,6 +239,8 @@ def delete(message, config, service_config):
 
     ctx = Context(message, config)
     params = message['params']
+
+    info("start task with params: {0}, config: {1}".format(params, config))
 
     try:
         service = create_service(params['service'], service_config)
